@@ -17,7 +17,7 @@ class ParsedHttpRequest:
 				splitheader = lines[i].split(" ", 1)
 				self.headers[splitheader[0]] = splitheader[1]
 
-			if self.headers[]
+			#check for required headers
 
 			self.isValid = True
 			self.statusCode = 200
