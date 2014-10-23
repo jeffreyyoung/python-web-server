@@ -17,4 +17,4 @@ class ParsedConfigFile:
 		elif "parameter" in words[0]:
 			self.parameters[words[1]] = words[2]
 
-ParseConfigFile()
+ParsedConfigFile()
