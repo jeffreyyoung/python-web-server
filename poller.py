@@ -17,6 +17,7 @@ class Poller:
         self.open_socket()
         self.clients = {}
         self.timeouts = {}
+        self.cache = {}
         self.size = 1024
         self.responseBuilder = HttpResponseBuilder(self.config)
 
@@ -112,14 +113,26 @@ class Poller:
                 return
             print traceback.format_exc()
             sys.exit()
-
         if data:
-            request = ParsedHttpRequest(data)
-            res = self.responseBuilder.getResponse(request)
-            self.clients[fd].send(res)
-            self.timeouts[fd] = time.time()
+            if "\r\n\r\n" in data:
+                if fd in self.cache:
+                    data = self.cache[fd] + data
+                    del self.cache[fd]
+
+                request = ParsedHttpRequest(data)
+                res = self.responseBuilder.getResponse(request)
+                self.clients[fd].send(res)
+                self.timeouts[fd] = time.time()
+            else:
+                if not fd in self.cache:
+                    self.cache[fd] = data
+                else:
+                    self.cache[fd] += data
+
         else:
             self.poller.unregister(fd)
             self.clients[fd].close()
             del self.clients[fd]
             del self.timeouts[fd]
+            if fd in self.cache:
+                del self.cache[fd]
