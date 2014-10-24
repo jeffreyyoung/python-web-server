@@ -99,10 +99,10 @@ class HttpResponse:
 			resbody = self.getResponseBody(self.code)
 			self.addResponseBodyHeaders(resbody)
 			res += self.headersToString()
-			if self.code is "200" and not self.request.lowerbound:
+			if self.code is "200" and not hasattr(self.request, 'lowerbound'):
 				with open(self.path, "rb") as f:
 		 		    res += f.read()
-		 	elif self.code is "200" and self.request.lowerbound:
+		 	elif self.code is "200" and hasattr(self.request, 'lowerbound'):
 		 		with open(self.path, "rb") as f:
 		 			fileBytes = f.read()
 		 			res += filebytes[self.request.lowerbound : self.request.upperbound]
@@ -114,16 +114,16 @@ class HttpResponse:
 	def addResponseBodyHeaders(self, resbody):
 			if self.code == "200":
 				extension = os.path.splitext(self.path)[1]
-				self.headers["content-type"] = self.config.medias[extension[1:]]
-				self.headers["last-modified"] = str(os.stat(self.path).st_mtime)
-				if not self.request.lowerbound:
-					self.headers["content-length"] = str(os.path.getsize(self.path))
+				self.headers["Content-Type"] = self.config.medias[extension[1:]]
+				self.headers["Last-Modified"] = str(os.stat(self.path).st_mtime)
+				if not hasattr(self.request, 'lowerbound'):
+					self.headers["Content-Length"] = str(os.path.getsize(self.path))
 				else:
-					self.headers["content-length"] = str(self.request.upperbound - self.request.lowerbound)
+					self.headers["Content-Length"] = str(self.request.upperbound - self.request.lowerbound)
 			else:
-				self.headers["content-type"] = self.config.medias["html"]
-				self.headers["content-length"] = str(len(resbody))
-				self.headers["last-modified"] = str(time.time()) 
+				self.headers["Content-Type"] = self.config.medias["html"]
+				self.headers["Content-Length"] = str(len(resbody))
+				self.headers["Last-Modified"] = str(time.time()) 
 
 	def headersToString(self):
 		res = ""

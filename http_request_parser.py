@@ -1,4 +1,5 @@
 from urlparse import urlparse
+import traceback
 
 class ParsedHttpRequest:
 	def __init__(self, request):
@@ -6,11 +7,14 @@ class ParsedHttpRequest:
 	def parse_request(self, request):
 
 		try:
+
+			print ("hooray")
 			message = request.split('\r\n\r\n', 1)
 			lines = message[0].split("\r\n")
 			requestLineWords = lines[0].split()
 			self.method = requestLineWords[0]
 			self.url = urlparse(requestLineWords[1])
+			print ("hooray")
 			#self.url = requestLineWords[1]
 			self.version = requestLineWords[2]
 			self.headers = {}
@@ -18,11 +22,13 @@ class ParsedHttpRequest:
 				splitheader = lines[i].split(":", 1)
 				self.headers[splitheader[0].strip().lower()] = splitheader[1].strip()
 
+			print ("hooray")
 			if "range" in self.headers:
 				str = self.headers["range"]
-				range = [int(s) for s in str.split() if s.isdigit()]
-				self.lowerbound = range[0]
-				self.upperbound = range[1]
+				byterange = [int(s) for s in str.split() if s.isdigit()]
+				print byterange
+				self.lowerbound = byterange[0]
+				self.upperbound = byterange[1]
 
 			#check for required headers
 			print self.method
@@ -34,6 +40,7 @@ class ParsedHttpRequest:
 				self.statusCode = "200"
 		except:
 			self.statusCode = "400"
+			print traceback.format_exc()
 
 
 
