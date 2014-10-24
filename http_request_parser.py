@@ -16,7 +16,13 @@ class ParsedHttpRequest:
 			self.headers = {}
 			for i in range(1, len(lines)):
 				splitheader = lines[i].split(":", 1)
-				self.headers[splitheader[0].strip()] = splitheader[1].strip()
+				self.headers[splitheader[0].strip().lower()] = splitheader[1].strip()
+
+			if "range" in self.headers:
+				str = self.headers["range"]
+				range = [int(s) for s in str.split() if s.isdigit()]
+				self.lowerbound = range[0]
+				self.upperbound = range[1]
 
 			#check for required headers
 			print self.method
