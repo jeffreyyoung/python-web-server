@@ -33,13 +33,27 @@ class Poller:
                 self.server.close()
             print "Could not open socket: " + message
             sys.exit(1)
+    def sweepClients(self):
+        for key in self.timeouts.keys():
+            if (time.time() - self.timeouts[key]) > self.timeout:
+                print "delete client: " + str(key)
+                del self.timeouts[key]
+                del self.clients[key]
 
     def run(self):
         """ Use poll() to handle each incoming client."""
         self.poller = select.epoll()
         self.pollmask = select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR
         self.poller.register(self.server,self.pollmask)
+        self.timeout = float(self.config.parameters["timeout"])
+        lastSweep = time.time()
+
         while True:
+
+            if (time.time() - lastSweep) > self.timeout:
+                #kill all client older than time
+                self.sweepClients()
+                lastSweep = time.time()
             # poll sockets
             try:
                 fds = self.poller.poll(timeout=1)
@@ -103,7 +117,9 @@ class Poller:
             request = ParsedHttpRequest(data)
             res = self.responseBuilder.getResponse(request)
             self.clients[fd].send(res)
+            self.timeouts[fd] = time.time()
         else:
             self.poller.unregister(fd)
             self.clients[fd].close()
             del self.clients[fd]
+            del self.timeouts[fd]
