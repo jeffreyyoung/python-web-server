@@ -3,15 +3,20 @@ import select
 import socket
 import sys
 import traceback
+from http_request_parser import ParsedHttpRequest
+from config_file_parser import ParsedConfigFile
+from http_response import HttpResponseBuilder
 
 class Poller:
     """ Polling server """
     def __init__(self,port):
+        self.config = ParsedConfigFile()
         self.host = ""
         self.port = port
         self.open_socket()
         self.clients = {}
         self.size = 1024
+        self.responseBuilder = HttpResponseBuilder(self.config)
 
     def open_socket(self):
         """ Setup the socket for incoming clients """
@@ -90,7 +95,9 @@ class Poller:
             sys.exit()
 
         if data:
-            self.clients[fd].send(data)
+            request = ParsedHttpRequest(data)
+            res = self.responseBuilder.getResponse(request)
+            self.clients[fd].send(res)
         else:
             self.poller.unregister(fd)
             self.clients[fd].close()
