@@ -26,7 +26,6 @@ class HttpResponseBuilder:
 			path = self.config.hosts[url.netloc] + path
 		else:
 			path = self.config.hosts["default"] + path
-
 		return path
 
 
@@ -54,28 +53,42 @@ class HttpResponse:
 
 	def toString(self):
 		res = ""
+		print
 		if self.code is "200":
-			res += "HTTP/1.1 " +self.code + "OK" + "\r\n" #change this
+			res += "HTTP/1.1 " +self.code + " OK" + "\r\n" #change this
 			res += self.headersToString()
-			if self.code is "200":
-				with open(self.path, "rb") as f:
-				    res += f.read()
-			return res
+
+			with open(self.path, "rb") as f:
+			    res += f.read()
 		elif self.code is "400":
-			return res
+			res += "HTTP/1.1 " + self.code + " BAD REQUEST" + "\r\n"
+			res += self.headersToString()
+			res += "400 Bad Request"
 		elif self.code is "403":
-			return res
+			res += "HTTP/1.1 " + self.code + " Forbidden" + "\r\n"
+			res += self.headersToString()
+			res += "403 Forbidden"
 		elif self.code is "404":
-			return res
+			res += "HTTP/1.1 " + self.code + " NOT FOUND" + "\r\n"
+			res += self.headersToString()
+			res += "404 Not Found"
 		elif self.code is "500":
-			return res
+			res += "HTTP/1.1 " + self.code + " Internal Server Error" + "\r\n"
+			res += self.headersToString()
+			res += "500 Internal Server Error"
 		elif self.code is "501":
-			return res
+			res += "HTTP/1.1 " + self.code + " Not Implemented" + "\r\n"
+			res += self.headersToString()
+			res += "501 Not Implemented"
+
+		print self.code, self.path
+		return res
 
 	def headersToString(self):
 		res = ""
 		for key, value in self.headers.iteritems():
 			res += key + ": " + value + "\r\n"
 
+		res += "\r\n"
 		return res
 
