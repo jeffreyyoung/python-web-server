@@ -3,6 +3,7 @@ import select
 import socket
 import sys
 import traceback
+import time
 from http_request_parser import ParsedHttpRequest
 from config_file_parser import ParsedConfigFile
 from http_response import HttpResponseBuilder
@@ -15,6 +16,7 @@ class Poller:
         self.port = port
         self.open_socket()
         self.clients = {}
+        self.timeouts = {}
         self.size = 1024
         self.responseBuilder = HttpResponseBuilder(self.config)
 
@@ -66,6 +68,7 @@ class Poller:
             # close the socket
             self.clients[fd].close()
             del self.clients[fd]
+            del self.timeouts[fd]
 
     def handleServer(self):
         # accept as many clients are possible
@@ -82,11 +85,13 @@ class Poller:
             # set client socket to be non blocking
             client.setblocking(0)
             self.clients[client.fileno()] = client
+            self.timeouts[client.fileno()] = time.time()
             self.poller.register(client.fileno(),self.pollmask)
 
     def handleClient(self,fd):
         try:
             data = self.clients[fd].recv(self.size)
+            self.timeouts[fd] = time.time()
         except socket.error, (value,message):
             # if no data is available, move on to another client
             if value == errno.EAGAIN or errno.EWOULDBLOCK:

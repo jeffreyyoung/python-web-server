@@ -19,11 +19,13 @@ class ParsedHttpRequest:
 				self.headers[splitheader[0].strip()] = splitheader[1].strip()
 
 			#check for required headers
-
-			if self.method is not "GET":
+			print self.method
+			if self.method != "HEAD" and self.method != "GET":
 				self.statusCode = "501"
-
-			self.statusCode = "200"
+			elif self.url is None:
+				self.statusCode = "501"
+			else:
+				self.statusCode = "200"
 		except:
 			self.statusCode = "400"
 
@@ -31,7 +33,7 @@ class ParsedHttpRequest:
 
 
 # request = "GET www.google.com HTTP1.1\r\nheadfield1: value1\r\nheadfield2: value2\r\n\r\n"
+# request = "GET http://www.google.com/ HTTP1.1\r\nheadfield1: value1\r\nheadfield2: value2\r\n\r\n"
 
 # r = ParsedHttpRequest(request)
-# print r.isValid, r.statusCode, r.method, r.url, r.version, r.headers
-# print r.url
+# print r.statusCode
