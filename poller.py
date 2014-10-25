@@ -38,6 +38,7 @@ class Poller:
         for key in self.timeouts.keys():
             if (time.time() - self.timeouts[key]) > self.timeout:
                 print "delete client: " + str(key)
+                #self.clients[fd].close()
                 del self.timeouts[key]
                 del self.clients[key]
 
@@ -136,3 +137,9 @@ class Poller:
             del self.timeouts[fd]
             if fd in self.cache:
                 del self.cache[fd]
+
+
+# str = "123456789abcdefghijklmnopqrstuvwyz"
+# print str[0:4]
+# print str[4:8]
+# print str[8:11]

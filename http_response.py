@@ -12,7 +12,7 @@ class HttpResponseBuilder:
 		if request.statusCode == "200":	
 			path = self.getPath(request.url)
 		
-		return HttpResponse(path, self.config, request.statusCode, request.method).toString()
+		return HttpResponse(path, self.config, request).toString()
 
 
 	def getPath(self, url):
@@ -27,15 +27,16 @@ class HttpResponseBuilder:
 		return path
 
 class HttpResponse:
-	def __init__(self, path, config, code, method):
+	def __init__(self, path, config, request):
 		self.headers = {}
 		self.path = path
 		self.headers["Date"] = str(time.time())
 		self.headers["Server"] = "jeffrey_server3.0"
-		self.code = code
+		self.code = request.statusCode
 		self.config = config
-		self.requestMethod = method
-		if code is "200":
+		self.requestMethod = request.method
+		self.request = request
+		if self.code is "200":
 			self.addFileHeaders(path, config)
 	def hasFilePermissions(self, path):
 		st = os.stat(path)
@@ -98,9 +99,15 @@ class HttpResponse:
 			resbody = self.getResponseBody(self.code)
 			self.addResponseBodyHeaders(resbody)
 			res += self.headersToString()
-			if self.code is "200":
+			if self.code is "200" and not hasattr(self.request, 'lowerbound'):
 				with open(self.path, "rb") as f:
 		 		    res += f.read()
+		 	elif self.code is "200" and hasattr(self.request, 'lowerbound'):
+		 		with open(self.path, "rb") as f:
+		 			fileBytes = f.read()
+		 			ub = self.request.upperbound + 1
+		 			section = fileBytes[self.request.lowerbound: ub]
+		 			res += section
 			else:
 				res += resbody
 
@@ -108,10 +115,14 @@ class HttpResponse:
 
 	def addResponseBodyHeaders(self, resbody):
 			if self.code == "200":
+				print str(os.path.getsize(self.path))
 				extension = os.path.splitext(self.path)[1]
 				self.headers["Content-Type"] = self.config.medias[extension[1:]]
-				self.headers["Content-Length"] = str(os.path.getsize(self.path))
 				self.headers["Last-Modified"] = str(os.stat(self.path).st_mtime)
+				if not hasattr(self.request, 'lowerbound'):
+					self.headers["Content-Length"] = str(os.path.getsize(self.path))
+				else:
+					self.headers["Content-Length"] = str((self.request.upperbound + 1) - self.request.lowerbound)
 			else:
 				self.headers["Content-Type"] = self.config.medias["html"]
 				self.headers["Content-Length"] = str(len(resbody))
