@@ -1,20 +1,18 @@
 from urlparse import urlparse
 import traceback
-
+import re
 class ParsedHttpRequest:
 	def __init__(self, request):
 		self.parse_request(request)
 	def parse_request(self, request):
 
 		try:
-
-			print ("hooray")
 			message = request.split('\r\n\r\n', 1)
 			lines = message[0].split("\r\n")
 			requestLineWords = lines[0].split()
 			self.method = requestLineWords[0]
 			self.url = urlparse(requestLineWords[1])
-			print ("hooray")
+
 			#self.url = requestLineWords[1]
 			self.version = requestLineWords[2]
 			self.headers = {}
@@ -22,10 +20,9 @@ class ParsedHttpRequest:
 				splitheader = lines[i].split(":", 1)
 				self.headers[splitheader[0].strip().lower()] = splitheader[1].strip()
 
-			print ("hooray")
 			if "range" in self.headers:
 				str = self.headers["range"]
-				byterange = [int(s) for s in str.split() if s.isdigit()]
+				byterange = map(int, re.findall('\d+', str))
 				print byterange
 				self.lowerbound = byterange[0]
 				self.upperbound = byterange[1]

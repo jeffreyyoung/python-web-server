@@ -105,7 +105,9 @@ class HttpResponse:
 		 	elif self.code is "200" and hasattr(self.request, 'lowerbound'):
 		 		with open(self.path, "rb") as f:
 		 			fileBytes = f.read()
-		 			res += filebytes[self.request.lowerbound : self.request.upperbound]
+		 			ub = self.request.upperbound + 1
+		 			section = fileBytes[self.request.lowerbound: ub]
+		 			res += section
 			else:
 				res += resbody
 
@@ -113,13 +115,14 @@ class HttpResponse:
 
 	def addResponseBodyHeaders(self, resbody):
 			if self.code == "200":
+				print str(os.path.getsize(self.path))
 				extension = os.path.splitext(self.path)[1]
 				self.headers["Content-Type"] = self.config.medias[extension[1:]]
 				self.headers["Last-Modified"] = str(os.stat(self.path).st_mtime)
 				if not hasattr(self.request, 'lowerbound'):
 					self.headers["Content-Length"] = str(os.path.getsize(self.path))
 				else:
-					self.headers["Content-Length"] = str(self.request.upperbound - self.request.lowerbound)
+					self.headers["Content-Length"] = str((self.request.upperbound + 1) - self.request.lowerbound)
 			else:
 				self.headers["Content-Type"] = self.config.medias["html"]
 				self.headers["Content-Length"] = str(len(resbody))
