@@ -19,6 +19,7 @@ class Main:
         self.args = parser.parse_args()
 
     def run(self):
+        print "server running on " + str(self.args.port)
         p = Poller(self.args.port)
         p.run()
 
